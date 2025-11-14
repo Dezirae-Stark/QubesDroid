@@ -6,8 +6,8 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := qubesdroid-crypto
 
 # Source directory (relative to QubesDroid root)
-CRYPTO_SRC := $(LOCAL_PATH)/../../../../../src/Crypto
-COMMON_SRC := $(LOCAL_PATH)/../../../../../src/Common
+SRC_ROOT := $(LOCAL_PATH)/../../../../../src
+CRYPTO_SRC := $(SRC_ROOT)/Crypto
 
 # Crypto source files
 LOCAL_SRC_FILES := \
@@ -24,10 +24,10 @@ LOCAL_SRC_FILES := \
     $(CRYPTO_SRC)/Argon2/src/ref.c \
     $(CRYPTO_SRC)/Argon2/src/blake2/blake2b.c
 
-# Include paths
+# Include paths - point to src/ so "Common/Tcdefs.h" resolves correctly
 LOCAL_C_INCLUDES := \
+    $(SRC_ROOT) \
     $(CRYPTO_SRC) \
-    $(COMMON_SRC) \
     $(CRYPTO_SRC)/Argon2/include \
     $(CRYPTO_SRC)/Argon2/src \
     $(CRYPTO_SRC)/Argon2/src/blake2

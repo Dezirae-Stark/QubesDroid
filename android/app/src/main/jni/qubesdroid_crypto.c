@@ -10,11 +10,11 @@
 #include <stdlib.h>
 #include <android/log.h>
 
-// Include crypto headers (relative to src/Crypto)
-#include "../../../../../../src/Crypto/chacha20poly1305.h"
-#include "../../../../../../src/Crypto/poly1305.h"
-#include "../../../../../../src/Crypto/chacha256.h"
-#include "../../../../../../src/Crypto/Argon2/include/argon2.h"
+// Include crypto headers (use include paths from Android.mk)
+#include "chacha20poly1305.h"
+#include "poly1305.h"
+#include "chacha256.h"
+#include "argon2.h"
 
 #define LOG_TAG "QubesDroid-Crypto"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
