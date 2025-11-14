@@ -1,0 +1,145 @@
+name: Build QubesDroid APK
+
+on:
+  push:
+    branches: [ master, develop ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK
+        run: |
+          echo "y" | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.1.10909125"
+          echo "ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/26.1.10909125" >> $GITHUB_ENV
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x android/gradlew
+        working-directory: ${{ github.workspace }}
+
+      - name: Create keystore for signing (if release)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/release.keystore
+          echo "KEYSTORE_FILE=$(pwd)/android/release.keystore" >> $GITHUB_ENV
+          echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+          echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
+          echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
+
+      - name: Build Debug APK
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        run: ./gradlew assembleDebug
+        working-directory: android
+
+      - name: Build Release APK
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: ./gradlew assembleRelease
+        working-directory: android
+        env:
+          KEYSTORE_FILE: ${{ env.KEYSTORE_FILE }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Upload Debug APK
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        uses: actions/upload-artifact@v4
+        with:
+          name: qubesdroid-debug-${{ github.sha }}
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+      - name: Upload Release APK to Artifacts
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: qubesdroid-release-${{ github.ref_name }}
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 90
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            android/app/build/outputs/apk/release/app-release.apk
+          body: |
+            ## QubesDroid ${{ github.ref_name }}
+
+            **Post-Quantum Secure Mobile Encryption**
+
+            ### Cryptography
+            - ✅ ChaCha20-Poly1305 AEAD (RFC 8439)
+            - ✅ Kyber-1024 Post-Quantum KEM (NIST PQC)
+            - ✅ Argon2id Password Hashing (RFC 9106)
+
+            ### Security
+            - ❌ NO legacy encryption (AES, Serpent, Twofish removed)
+            - ✅ 256-bit quantum security
+            - ✅ AEAD authenticated encryption
+            - ✅ Memory-hard key derivation
+
+            ### Installation
+            1. Download `app-release.apk`
+            2. Enable "Install from Unknown Sources" in Android settings
+            3. Install the APK
+            4. Grant storage permissions
+
+            ### Compatibility
+            - **Min Android:** 8.0 (API 26)
+            - **Target Android:** 14 (API 34)
+            - **Architectures:** ARM64, ARMv7
+
+            ### Checksums
+            ```
+            SHA256: $(sha256sum android/app/build/outputs/apk/release/app-release.apk | cut -d' ' -f1)
+            ```
+
+            **⚠️ BREAKING:** Not compatible with VeraCrypt volumes
+            **⚠️ ALPHA:** Use on demo/test data only
+
+            ---
+            🤖 Built with GitHub Actions
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Summary
+        run: |
+          echo "### Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          if [ -f "android/app/build/outputs/apk/debug/app-debug.apk" ]; then
+            APK_SIZE=$(du -h android/app/build/outputs/apk/debug/app-debug.apk | cut -f1)
+            echo "**APK Size (Debug):** $APK_SIZE" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f "android/app/build/outputs/apk/release/app-release.apk" ]; then
+            APK_SIZE=$(du -h android/app/build/outputs/apk/release/app-release.apk | cut -f1)
+            echo "**APK Size (Release):** $APK_SIZE" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Build completed successfully!" >> $GITHUB_STEP_SUMMARY
