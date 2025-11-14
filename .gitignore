@@ -136,3 +136,4 @@ android/app/.externalNativeBuild/
 # Test results
 android/app/build/outputs/
 android/app/build/reports/
+github-secrets.txt
