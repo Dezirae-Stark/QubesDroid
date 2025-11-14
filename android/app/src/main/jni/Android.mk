@@ -17,18 +17,17 @@ LOCAL_SRC_FILES := \
     $(CRYPTO_SRC)/chachaRng.c \
     $(CRYPTO_SRC)/Sha2.c \
     $(CRYPTO_SRC)/blake2s.c \
-    $(CRYPTO_SRC)/Argon2/argon2.c \
-    $(CRYPTO_SRC)/Argon2/core.c \
-    $(CRYPTO_SRC)/Argon2/encoding.c \
-    $(CRYPTO_SRC)/Argon2/opt.c \
-    $(CRYPTO_SRC)/Argon2/thread.c \
-    $(CRYPTO_SRC)/Argon2/blake2/blake2b.c
+    $(CRYPTO_SRC)/Argon2/src/argon2.c \
+    $(CRYPTO_SRC)/Argon2/src/core.c \
+    $(CRYPTO_SRC)/Argon2/src/ref.c \
+    $(CRYPTO_SRC)/Argon2/src/blake2/blake2b.c
 
 # Include paths
 LOCAL_C_INCLUDES := \
     $(CRYPTO_SRC) \
-    $(CRYPTO_SRC)/Argon2 \
-    $(CRYPTO_SRC)/Argon2/blake2
+    $(CRYPTO_SRC)/Argon2/include \
+    $(CRYPTO_SRC)/Argon2/src \
+    $(CRYPTO_SRC)/Argon2/src/blake2
 
 # Compiler flags
 LOCAL_CFLAGS := \
