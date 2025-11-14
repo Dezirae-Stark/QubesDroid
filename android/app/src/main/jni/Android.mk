@@ -7,6 +7,7 @@ LOCAL_MODULE := qubesdroid-crypto
 
 # Source directory (relative to QubesDroid root)
 CRYPTO_SRC := $(LOCAL_PATH)/../../../../../src/Crypto
+COMMON_SRC := $(LOCAL_PATH)/../../../../../src/Common
 
 # Crypto source files
 LOCAL_SRC_FILES := \
@@ -25,6 +26,7 @@ LOCAL_SRC_FILES := \
 # Include paths
 LOCAL_C_INCLUDES := \
     $(CRYPTO_SRC) \
+    $(COMMON_SRC) \
     $(CRYPTO_SRC)/Argon2/include \
     $(CRYPTO_SRC)/Argon2/src \
     $(CRYPTO_SRC)/Argon2/src/blake2
