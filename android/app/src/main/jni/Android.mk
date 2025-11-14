@@ -12,6 +12,7 @@ COMMON_SRC := $(LOCAL_PATH)/../../../../../src/Common
 # Crypto source files
 LOCAL_SRC_FILES := \
     qubesdroid_crypto.c \
+    $(CRYPTO_SRC)/cpu.c \
     $(CRYPTO_SRC)/chacha20poly1305.c \
     $(CRYPTO_SRC)/chacha256.c \
     $(CRYPTO_SRC)/poly1305.c \
