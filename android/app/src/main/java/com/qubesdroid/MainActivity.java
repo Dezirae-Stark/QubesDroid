@@ -7,7 +7,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
-import android.widget.Button;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,6 +16,13 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+
+import java.io.File;
 
 /**
  * QubesDroid - Post-Quantum Encrypted Volume Manager
@@ -30,10 +38,12 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 100;
 
     private CryptoNative crypto;
+    private MaterialToolbar toolbar;
     private TextView versionText;
-    private Button createVolumeButton;
-    private Button mountVolumeButton;
-    private Button settingsButton;
+    private MaterialButton createVolumeButton;
+    private MaterialButton mountVolumeButton;
+    private MaterialCardView recentVolumesCard;
+    private ExtendedFloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,13 +54,18 @@ public class MainActivity extends AppCompatActivity {
         crypto = new CryptoNative();
 
         // Initialize UI components
-        versionText = findViewById(R.id.version_text);
-        createVolumeButton = findViewById(R.id.btn_create_volume);
-        mountVolumeButton = findViewById(R.id.btn_mount_volume);
-        settingsButton = findViewById(R.id.btn_settings);
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        versionText = findViewById(R.id.versionText);
+        createVolumeButton = findViewById(R.id.createVolumeButton);
+        mountVolumeButton = findViewById(R.id.mountVolumeButton);
+        recentVolumesCard = findViewById(R.id.recentVolumesCard);
+        fab = findViewById(R.id.fab);
 
         // Display version info
-        versionText.setText(crypto.getVersionInfo());
+        String cryptoVersion = crypto.getVersionInfo();
+        versionText.setText("QubesDroid v1.0.0-alpha\n" + cryptoVersion);
 
         // Set up button listeners
         createVolumeButton.setOnClickListener(v -> {
@@ -65,12 +80,71 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        settingsButton.setOnClickListener(v -> {
-            startActivity(new Intent(this, SettingsActivity.class));
+        fab.setOnClickListener(v -> {
+            if (checkPermissions()) {
+                startActivity(new Intent(this, CreateVolumeActivity.class));
+            }
         });
 
         // Check permissions on startup
         checkPermissions();
+
+        // Load recent volumes if any exist
+        loadRecentVolumes();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Reload recent volumes when returning to activity
+        loadRecentVolumes();
+    }
+
+    private void loadRecentVolumes() {
+        File volumesDir = new File(getExternalFilesDir(null), "volumes");
+        if (volumesDir.exists() && volumesDir.listFiles() != null) {
+            File[] volumes = volumesDir.listFiles((dir, name) -> name.endsWith(".qd"));
+            if (volumes != null && volumes.length > 0) {
+                recentVolumesCard.setVisibility(android.view.View.VISIBLE);
+                // In a full implementation, we would populate the RecyclerView here
+            }
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
+            return true;
+        } else if (id == R.id.action_about) {
+            showAboutDialog();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void showAboutDialog() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("About QubesDroid")
+            .setMessage("QubesDroid v1.0.0-alpha\n\n" +
+                "Post-Quantum Encrypted Volume Manager\n\n" +
+                "Cryptography:\n" +
+                "• ML-KEM-1024 (Post-Quantum KEM)\n" +
+                "• ChaCha20-Poly1305 (AEAD)\n" +
+                "• Argon2id (Password Hashing)\n" +
+                "• BLAKE2s-256 (Hashing)\n\n" +
+                "\u00a9 2025 QubesDroid Project")
+            .setPositiveButton("OK", null)
+            .show();
     }
 
     private boolean checkPermissions() {
@@ -110,6 +184,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Permissions granted", Toast.LENGTH_SHORT).show();
+                loadRecentVolumes();
             } else {
                 Toast.makeText(this,
                     "Storage permission is required for QubesDroid to function",
