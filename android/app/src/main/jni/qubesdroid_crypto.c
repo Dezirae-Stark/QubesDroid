@@ -66,7 +66,8 @@ Java_com_qubesdroid_CryptoNative_deriveKeyFromPassword(
         salt_bytes,
         salt_len,
         key,
-        sizeof(key)
+        sizeof(key),
+        NULL  // pAbortKeyDerivation - not using abort functionality
     );
 
     // Clear password from memory
