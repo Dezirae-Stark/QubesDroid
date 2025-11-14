@@ -28,6 +28,16 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            // These will be set from GitHub Secrets in CI/CD
+            storeFile file(System.getenv("KEYSTORE_FILE") ?: "release.keystore")
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "android"
+            keyAlias System.getenv("KEY_ALIAS") ?: "qubesdroid"
+            keyPassword System.getenv("KEY_PASSWORD") ?: "android"
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled true
@@ -41,16 +51,6 @@ android {
             applicationIdSuffix ".debug"
             debuggable true
             jniDebuggable true
-        }
-    }
-
-    signingConfigs {
-        release {
-            // These will be set from GitHub Secrets in CI/CD
-            storeFile file(System.getenv("KEYSTORE_FILE") ?: "release.keystore")
-            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "android"
-            keyAlias System.getenv("KEY_ALIAS") ?: "qubesdroid"
-            keyPassword System.getenv("KEY_PASSWORD") ?: "android"
         }
     }
 
