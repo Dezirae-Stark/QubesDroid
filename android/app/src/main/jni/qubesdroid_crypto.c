@@ -14,7 +14,7 @@
 #include "../../../../../../src/Crypto/chacha20poly1305.h"
 #include "../../../../../../src/Crypto/poly1305.h"
 #include "../../../../../../src/Crypto/chacha256.h"
-#include "../../../../../../src/Crypto/Argon2/argon2.h"
+#include "../../../../../../src/Crypto/Argon2/include/argon2.h"
 
 #define LOG_TAG "QubesDroid-Crypto"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
