@@ -15,6 +15,7 @@
 #include "poly1305.h"
 #include "chacha256.h"
 #include "argon2.h"
+#include "mlkem1024.h"
 
 #define LOG_TAG "QubesDroid-Crypto"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
@@ -269,4 +270,177 @@ Java_com_qubesdroid_CryptoNative_getVersionInfo(JNIEnv *env, jobject thiz)
                          "  - Kyber-1024 (NIST PQC)\n"
                          "  - Argon2id (RFC 9106)";
     return (*env)->NewStringUTF(env, version);
+}
+
+/*
+ * =====================================================================
+ * ML-KEM-1024 (Kyber-1024) Post-Quantum Key Encapsulation
+ * =====================================================================
+ */
+
+/*
+ * Class:     com_qubesdroid_CryptoNative
+ * Method:    mlkemKeypair
+ * Signature: ()[Ljava/lang/Object;
+ *
+ * Generate ML-KEM-1024 keypair
+ * Returns Object[] {publicKey, secretKey}
+ */
+JNIEXPORT jobjectArray JNICALL
+Java_com_qubesdroid_CryptoNative_mlkemKeypair(
+    JNIEnv *env,
+    jobject thiz)
+{
+    uint8_t pk[MLKEM1024_PUBLICKEYBYTES];
+    uint8_t sk[MLKEM1024_SECRETKEYBYTES];
+
+    LOGD("Generating ML-KEM-1024 keypair");
+
+    int result = mlkem1024_keypair(pk, sk);
+
+    if (result != 0) {
+        LOGE("ML-KEM-1024 keypair generation failed: %d", result);
+        return NULL;
+    }
+
+    // Create Java byte arrays
+    jbyteArray java_pk = (*env)->NewByteArray(env, MLKEM1024_PUBLICKEYBYTES);
+    jbyteArray java_sk = (*env)->NewByteArray(env, MLKEM1024_SECRETKEYBYTES);
+
+    (*env)->SetByteArrayRegion(env, java_pk, 0, MLKEM1024_PUBLICKEYBYTES, (jbyte*)pk);
+    (*env)->SetByteArrayRegion(env, java_sk, 0, MLKEM1024_SECRETKEYBYTES, (jbyte*)sk);
+
+    // Clear sensitive data
+    memset(pk, 0, sizeof(pk));
+    memset(sk, 0, sizeof(sk));
+
+    // Return as Object array
+    jobjectArray result_array = (*env)->NewObjectArray(env, 2,
+        (*env)->FindClass(env, "[B"), NULL);
+    (*env)->SetObjectArrayElement(env, result_array, 0, java_pk);
+    (*env)->SetObjectArrayElement(env, result_array, 1, java_sk);
+
+    LOGI("ML-KEM-1024 keypair generated successfully");
+    return result_array;
+}
+
+/*
+ * Class:     com_qubesdroid_CryptoNative
+ * Method:    mlkemEncapsulate
+ * Signature: ([B)[Ljava/lang/Object;
+ *
+ * ML-KEM-1024 Encapsulation
+ * Returns Object[] {ciphertext, sharedSecret}
+ */
+JNIEXPORT jobjectArray JNICALL
+Java_com_qubesdroid_CryptoNative_mlkemEncapsulate(
+    JNIEnv *env,
+    jobject thiz,
+    jbyteArray publicKey)
+{
+    jbyte *pk_bytes = (*env)->GetByteArrayElements(env, publicKey, NULL);
+    jsize pk_len = (*env)->GetArrayLength(env, publicKey);
+
+    if (pk_len != MLKEM1024_PUBLICKEYBYTES) {
+        LOGE("Invalid public key length: %d (expected %d)", pk_len, MLKEM1024_PUBLICKEYBYTES);
+        (*env)->ReleaseByteArrayElements(env, publicKey, pk_bytes, JNI_ABORT);
+        return NULL;
+    }
+
+    uint8_t ct[MLKEM1024_CIPHERTEXTBYTES];
+    uint8_t ss[MLKEM1024_BYTES];
+
+    LOGD("ML-KEM-1024 encapsulation");
+
+    int result = mlkem1024_enc(ct, ss, (uint8_t*)pk_bytes);
+
+    (*env)->ReleaseByteArrayElements(env, publicKey, pk_bytes, JNI_ABORT);
+
+    if (result != 0) {
+        LOGE("ML-KEM-1024 encapsulation failed: %d", result);
+        memset(ct, 0, sizeof(ct));
+        memset(ss, 0, sizeof(ss));
+        return NULL;
+    }
+
+    // Create Java byte arrays
+    jbyteArray java_ct = (*env)->NewByteArray(env, MLKEM1024_CIPHERTEXTBYTES);
+    jbyteArray java_ss = (*env)->NewByteArray(env, MLKEM1024_BYTES);
+
+    (*env)->SetByteArrayRegion(env, java_ct, 0, MLKEM1024_CIPHERTEXTBYTES, (jbyte*)ct);
+    (*env)->SetByteArrayRegion(env, java_ss, 0, MLKEM1024_BYTES, (jbyte*)ss);
+
+    // Clear sensitive data
+    memset(ct, 0, sizeof(ct));
+    memset(ss, 0, sizeof(ss));
+
+    // Return as Object array
+    jobjectArray result_array = (*env)->NewObjectArray(env, 2,
+        (*env)->FindClass(env, "[B"), NULL);
+    (*env)->SetObjectArrayElement(env, result_array, 0, java_ct);
+    (*env)->SetObjectArrayElement(env, result_array, 1, java_ss);
+
+    LOGI("ML-KEM-1024 encapsulation successful");
+    return result_array;
+}
+
+/*
+ * Class:     com_qubesdroid_CryptoNative
+ * Method:    mlkemDecapsulate
+ * Signature: ([B[B)[B
+ *
+ * ML-KEM-1024 Decapsulation
+ * Returns shared secret
+ */
+JNIEXPORT jbyteArray JNICALL
+Java_com_qubesdroid_CryptoNative_mlkemDecapsulate(
+    JNIEnv *env,
+    jobject thiz,
+    jbyteArray ciphertext,
+    jbyteArray secretKey)
+{
+    jbyte *ct_bytes = (*env)->GetByteArrayElements(env, ciphertext, NULL);
+    jbyte *sk_bytes = (*env)->GetByteArrayElements(env, secretKey, NULL);
+
+    jsize ct_len = (*env)->GetArrayLength(env, ciphertext);
+    jsize sk_len = (*env)->GetArrayLength(env, secretKey);
+
+    if (ct_len != MLKEM1024_CIPHERTEXTBYTES) {
+        LOGE("Invalid ciphertext length: %d (expected %d)", ct_len, MLKEM1024_CIPHERTEXTBYTES);
+        (*env)->ReleaseByteArrayElements(env, ciphertext, ct_bytes, JNI_ABORT);
+        (*env)->ReleaseByteArrayElements(env, secretKey, sk_bytes, JNI_ABORT);
+        return NULL;
+    }
+
+    if (sk_len != MLKEM1024_SECRETKEYBYTES) {
+        LOGE("Invalid secret key length: %d (expected %d)", sk_len, MLKEM1024_SECRETKEYBYTES);
+        (*env)->ReleaseByteArrayElements(env, ciphertext, ct_bytes, JNI_ABORT);
+        (*env)->ReleaseByteArrayElements(env, secretKey, sk_bytes, JNI_ABORT);
+        return NULL;
+    }
+
+    uint8_t ss[MLKEM1024_BYTES];
+
+    LOGD("ML-KEM-1024 decapsulation");
+
+    int result = mlkem1024_dec(ss, (uint8_t*)ct_bytes, (uint8_t*)sk_bytes);
+
+    (*env)->ReleaseByteArrayElements(env, ciphertext, ct_bytes, JNI_ABORT);
+    (*env)->ReleaseByteArrayElements(env, secretKey, sk_bytes, JNI_ABORT);
+
+    if (result != 0) {
+        LOGE("ML-KEM-1024 decapsulation failed: %d", result);
+        memset(ss, 0, sizeof(ss));
+        return NULL;
+    }
+
+    // Create Java byte array
+    jbyteArray java_ss = (*env)->NewByteArray(env, MLKEM1024_BYTES);
+    (*env)->SetByteArrayRegion(env, java_ss, 0, MLKEM1024_BYTES, (jbyte*)ss);
+
+    // Clear sensitive data
+    memset(ss, 0, sizeof(ss));
+
+    LOGI("ML-KEM-1024 decapsulation successful");
+    return java_ss;
 }

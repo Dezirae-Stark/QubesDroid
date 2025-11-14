@@ -75,4 +75,36 @@ public class CryptoNative {
         random.nextBytes(nonce);
         return nonce;
     }
+
+    // ========================================================================
+    // ML-KEM-1024 (Kyber-1024) Post-Quantum Key Encapsulation
+    // ========================================================================
+
+    /**
+     * Generate ML-KEM-1024 keypair
+     *
+     * @return Object[] {publicKey (1568 bytes), secretKey (3168 bytes)}
+     */
+    public native Object[] mlkemKeypair();
+
+    /**
+     * ML-KEM-1024 Encapsulation
+     *
+     * Generate shared secret and encapsulate with public key
+     *
+     * @param publicKey 1568-byte ML-KEM public key
+     * @return Object[] {ciphertext (1568 bytes), sharedSecret (32 bytes)}
+     */
+    public native Object[] mlkemEncapsulate(byte[] publicKey);
+
+    /**
+     * ML-KEM-1024 Decapsulation
+     *
+     * Recover shared secret from ciphertext using secret key
+     *
+     * @param ciphertext 1568-byte ML-KEM ciphertext
+     * @param secretKey 3168-byte ML-KEM secret key
+     * @return 32-byte shared secret, or null if decapsulation fails
+     */
+    public native byte[] mlkemDecapsulate(byte[] ciphertext, byte[] secretKey);
 }
