@@ -111,3 +111,28 @@ src/Setup/PortableRelease
 
 src/SetupDLL/Debug
 src/SetupDLL/Release
+# Android build artifacts
+android/.gradle/
+android/build/
+android/app/build/
+android/app/release/
+android/app/debug/
+android/.idea/
+android/local.properties
+*.apk
+*.aab
+
+# Android keystore (NEVER commit keystores!)
+*.keystore
+*.jks
+release.keystore
+android/app/release.keystore
+
+# NDK build artifacts
+android/app/src/main/obj/
+android/app/src/main/libs/
+android/app/.externalNativeBuild/
+
+# Test results
+android/app/build/outputs/
+android/app/build/reports/
