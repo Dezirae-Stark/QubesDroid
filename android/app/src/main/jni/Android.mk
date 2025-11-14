@@ -18,6 +18,7 @@ LOCAL_SRC_FILES := \
     $(CRYPTO_SRC)/poly1305.c \
     $(CRYPTO_SRC)/chachaRng.c \
     $(CRYPTO_SRC)/Sha2.c \
+    $(CRYPTO_SRC)/sha256_armv8.c \
     $(CRYPTO_SRC)/blake2s.c \
     $(CRYPTO_SRC)/Argon2/src/argon2.c \
     $(CRYPTO_SRC)/Argon2/src/core.c \
