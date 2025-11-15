@@ -293,10 +293,12 @@ public class MountVolumeActivity extends AppCompatActivity {
 
                     // Launch file browser with volume info
                     android.util.Log.e("QubesDroid", "Creating Intent for FileBrowserActivity");
-                    Intent intent = new Intent(this, FileBrowserActivity.class);
+                    Intent intent = new Intent(MountVolumeActivity.this, FileBrowserActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     intent.putExtra("volumeName", selectedVolumeFile.getName());
                     intent.putExtra("volumePath", selectedVolumeFile.getAbsolutePath());
-                    intent.putExtra("masterKey", masterKey);
+                    // Temporarily skip passing masterKey to test if that's the issue
+                    // intent.putExtra("masterKey", masterKey);
                     android.util.Log.e("QubesDroid", "Starting FileBrowserActivity with volume: " + selectedVolumeFile.getName());
 
                     try {
