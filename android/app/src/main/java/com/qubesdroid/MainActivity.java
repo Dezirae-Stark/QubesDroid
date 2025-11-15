@@ -51,16 +51,50 @@ public class MainActivity extends AppCompatActivity {
 
         android.util.Log.e("QubesDroid", "===== ONCREATE START =====");
 
-        // Create simple TextView programmatically to avoid layout issues
-        TextView testView = new TextView(this);
-        testView.setText("QubesDroid Test - If you see this, basic app works!");
-        testView.setTextSize(20);
-        testView.setPadding(50, 50, 50, 50);
-        setContentView(testView);
+        try {
+            android.util.Log.e("QubesDroid", "Inflating layout...");
+            setContentView(R.layout.activity_main);
+            android.util.Log.e("QubesDroid", "Layout inflated successfully");
 
-        android.util.Log.e("QubesDroid", "===== ONCREATE SUCCESS =====");
+            // Initialize UI components
+            android.util.Log.e("QubesDroid", "Finding views...");
+            toolbar = findViewById(R.id.toolbar);
+            setSupportActionBar(toolbar);
 
-        Toast.makeText(this, "QubesDroid started successfully!", Toast.LENGTH_LONG).show();
+            versionText = findViewById(R.id.versionText);
+            createVolumeButton = findViewById(R.id.createVolumeButton);
+            mountVolumeButton = findViewById(R.id.mountVolumeButton);
+            recentVolumesCard = findViewById(R.id.recentVolumesCard);
+            fab = findViewById(R.id.fab);
+            android.util.Log.e("QubesDroid", "Views found successfully");
+
+            // DO NOT load native library yet - just set text
+            versionText.setText("QubesDroid v1.0.0-alpha\n(Native library not loaded)");
+            android.util.Log.e("QubesDroid", "Version text set");
+
+            // Set up button listeners
+            createVolumeButton.setOnClickListener(v -> {
+                Toast.makeText(this, "Create Volume clicked", Toast.LENGTH_SHORT).show();
+            });
+
+            mountVolumeButton.setOnClickListener(v -> {
+                Toast.makeText(this, "Mount Volume clicked", Toast.LENGTH_SHORT).show();
+            });
+
+            android.util.Log.e("QubesDroid", "===== ONCREATE SUCCESS =====");
+            Toast.makeText(this, "QubesDroid UI loaded successfully!", Toast.LENGTH_LONG).show();
+
+        } catch (Exception e) {
+            android.util.Log.e("QubesDroid", "CRASH in onCreate: " + e.getMessage(), e);
+            Toast.makeText(this, "ERROR: " + e.getMessage(), Toast.LENGTH_LONG).show();
+
+            // Fall back to simple view
+            TextView errorView = new TextView(this);
+            errorView.setText("ERROR: " + e.getMessage() + "\n\nCheck logcat for details");
+            errorView.setTextSize(16);
+            errorView.setPadding(50, 50, 50, 50);
+            setContentView(errorView);
+        }
     }
 
     @Override
