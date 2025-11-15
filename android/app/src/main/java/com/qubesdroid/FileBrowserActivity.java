@@ -27,20 +27,38 @@ public class FileBrowserActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_file_browser);
+        android.util.Log.e("QubesDroid", "=== FileBrowserActivity onCreate START ===");
 
-        // Get data from intent
-        volumeName = getIntent().getStringExtra("volumeName");
-        volumePath = getIntent().getStringExtra("volumePath");
-        masterKey = getIntent().getByteArrayExtra("masterKey");
+        try {
+            setContentView(R.layout.activity_file_browser);
+            android.util.Log.e("QubesDroid", "Layout inflated successfully");
 
-        initializeViews();
-        setupToolbar();
-        setupListeners();
-        displayVolumeInfo();
+            // Get data from intent
+            volumeName = getIntent().getStringExtra("volumeName");
+            volumePath = getIntent().getStringExtra("volumePath");
+            masterKey = getIntent().getByteArrayExtra("masterKey");
+            android.util.Log.e("QubesDroid", "Intent data retrieved: volumeName=" + volumeName);
 
-        // Show empty state initially
-        showEmptyState();
+            initializeViews();
+            android.util.Log.e("QubesDroid", "Views initialized");
+
+            setupToolbar();
+            android.util.Log.e("QubesDroid", "Toolbar setup");
+
+            setupListeners();
+            android.util.Log.e("QubesDroid", "Listeners setup");
+
+            displayVolumeInfo();
+            android.util.Log.e("QubesDroid", "Volume info displayed");
+
+            // Show empty state initially
+            showEmptyState();
+            android.util.Log.e("QubesDroid", "=== FileBrowserActivity onCreate COMPLETE ===");
+        } catch (Exception e) {
+            android.util.Log.e("QubesDroid", "FATAL ERROR in FileBrowserActivity onCreate", e);
+            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            finish();
+        }
     }
 
     private void initializeViews() {

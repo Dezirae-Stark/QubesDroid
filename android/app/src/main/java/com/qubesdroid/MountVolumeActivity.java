@@ -286,17 +286,28 @@ public class MountVolumeActivity extends AppCompatActivity {
 
                 // Success - volume is now mounted
                 runOnUiThread(() -> {
+                    android.util.Log.e("QubesDroid", "=== MOUNT SUCCESS - Preparing to launch FileBrowserActivity ===");
                     Toast.makeText(this,
                         "Volume mounted successfully!",
                         Toast.LENGTH_SHORT).show();
 
                     // Launch file browser with volume info
+                    android.util.Log.e("QubesDroid", "Creating Intent for FileBrowserActivity");
                     Intent intent = new Intent(this, FileBrowserActivity.class);
                     intent.putExtra("volumeName", selectedVolumeFile.getName());
                     intent.putExtra("volumePath", selectedVolumeFile.getAbsolutePath());
                     intent.putExtra("masterKey", masterKey);
-                    startActivity(intent);
+                    android.util.Log.e("QubesDroid", "Starting FileBrowserActivity with volume: " + selectedVolumeFile.getName());
 
+                    try {
+                        startActivity(intent);
+                        android.util.Log.e("QubesDroid", "FileBrowserActivity started successfully");
+                    } catch (Exception e) {
+                        android.util.Log.e("QubesDroid", "FAILED to start FileBrowserActivity", e);
+                        Toast.makeText(this, "Error launching file browser: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+
+                    android.util.Log.e("QubesDroid", "Finishing MountVolumeActivity");
                     finish();
                 });
 
