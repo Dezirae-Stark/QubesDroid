@@ -48,53 +48,59 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-        android.util.Log.e("QubesDroid", "===== ONCREATE START =====");
+        // Initialize UI components
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
+        versionText = findViewById(R.id.versionText);
+        createVolumeButton = findViewById(R.id.createVolumeButton);
+        mountVolumeButton = findViewById(R.id.mountVolumeButton);
+        recentVolumesCard = findViewById(R.id.recentVolumesCard);
+        fab = findViewById(R.id.fab);
+
+        // Initialize crypto native library with error handling
+        String cryptoVersion = "Crypto library not available";
         try {
-            android.util.Log.e("QubesDroid", "Inflating layout...");
-            setContentView(R.layout.activity_main);
-            android.util.Log.e("QubesDroid", "Layout inflated successfully");
-
-            // Initialize UI components
-            android.util.Log.e("QubesDroid", "Finding views...");
-            toolbar = findViewById(R.id.toolbar);
-            setSupportActionBar(toolbar);
-
-            versionText = findViewById(R.id.versionText);
-            createVolumeButton = findViewById(R.id.createVolumeButton);
-            mountVolumeButton = findViewById(R.id.mountVolumeButton);
-            recentVolumesCard = findViewById(R.id.recentVolumesCard);
-            fab = findViewById(R.id.fab);
-            android.util.Log.e("QubesDroid", "Views found successfully");
-
-            // DO NOT load native library yet - just set text
-            versionText.setText("QubesDroid v1.0.0-alpha\n(Native library not loaded)");
-            android.util.Log.e("QubesDroid", "Version text set");
-
-            // Set up button listeners
-            createVolumeButton.setOnClickListener(v -> {
-                Toast.makeText(this, "Create Volume clicked", Toast.LENGTH_SHORT).show();
-            });
-
-            mountVolumeButton.setOnClickListener(v -> {
-                Toast.makeText(this, "Mount Volume clicked", Toast.LENGTH_SHORT).show();
-            });
-
-            android.util.Log.e("QubesDroid", "===== ONCREATE SUCCESS =====");
-            Toast.makeText(this, "QubesDroid UI loaded successfully!", Toast.LENGTH_LONG).show();
-
+            crypto = new CryptoNative();
+            cryptoVersion = crypto.getVersionInfo();
+            android.util.Log.i("QubesDroid", "Crypto library loaded successfully");
+        } catch (UnsatisfiedLinkError e) {
+            android.util.Log.e("QubesDroid", "Failed to load native library", e);
+            cryptoVersion = "Native library error: " + e.getMessage();
         } catch (Exception e) {
-            android.util.Log.e("QubesDroid", "CRASH in onCreate: " + e.getMessage(), e);
-            Toast.makeText(this, "ERROR: " + e.getMessage(), Toast.LENGTH_LONG).show();
-
-            // Fall back to simple view
-            TextView errorView = new TextView(this);
-            errorView.setText("ERROR: " + e.getMessage() + "\n\nCheck logcat for details");
-            errorView.setTextSize(16);
-            errorView.setPadding(50, 50, 50, 50);
-            setContentView(errorView);
+            android.util.Log.e("QubesDroid", "Unexpected error initializing crypto", e);
+            cryptoVersion = "Initialization error: " + e.getMessage();
         }
+
+        // Display version info
+        versionText.setText("QubesDroid v1.0.0-alpha\n" + cryptoVersion);
+
+        // Set up button listeners
+        createVolumeButton.setOnClickListener(v -> {
+            if (checkPermissions()) {
+                startActivity(new Intent(this, CreateVolumeActivity.class));
+            }
+        });
+
+        mountVolumeButton.setOnClickListener(v -> {
+            if (checkPermissions()) {
+                startActivity(new Intent(this, MountVolumeActivity.class));
+            }
+        });
+
+        fab.setOnClickListener(v -> {
+            if (checkPermissions()) {
+                startActivity(new Intent(this, CreateVolumeActivity.class));
+            }
+        });
+
+        // Check permissions on startup
+        checkPermissions();
+
+        // Load recent volumes if any exist
+        loadRecentVolumes();
     }
 
     @Override
