@@ -50,9 +50,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize crypto native library
-        crypto = new CryptoNative();
-
         // Initialize UI components
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -63,8 +60,24 @@ public class MainActivity extends AppCompatActivity {
         recentVolumesCard = findViewById(R.id.recentVolumesCard);
         fab = findViewById(R.id.fab);
 
+        // Initialize crypto native library with error handling
+        String cryptoVersion = "Crypto library not available";
+        try {
+            crypto = new CryptoNative();
+            cryptoVersion = crypto.getVersionInfo();
+            android.util.Log.i("QubesDroid", "Crypto library loaded successfully");
+        } catch (UnsatisfiedLinkError e) {
+            android.util.Log.e("QubesDroid", "Failed to load native library", e);
+            cryptoVersion = "ERROR: " + e.getMessage();
+            Toast.makeText(this, "Native library failed to load: " + e.getMessage(),
+                Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            android.util.Log.e("QubesDroid", "Unexpected error initializing crypto", e);
+            cryptoVersion = "ERROR: " + e.getMessage();
+            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+
         // Display version info
-        String cryptoVersion = crypto.getVersionInfo();
         versionText.setText("QubesDroid v1.0.0-alpha\n" + cryptoVersion);
 
         // Set up button listeners
