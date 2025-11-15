@@ -48,62 +48,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        // Initialize UI components
-        toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        android.util.Log.e("QubesDroid", "===== ONCREATE START =====");
 
-        versionText = findViewById(R.id.versionText);
-        createVolumeButton = findViewById(R.id.createVolumeButton);
-        mountVolumeButton = findViewById(R.id.mountVolumeButton);
-        recentVolumesCard = findViewById(R.id.recentVolumesCard);
-        fab = findViewById(R.id.fab);
+        // Create simple TextView programmatically to avoid layout issues
+        TextView testView = new TextView(this);
+        testView.setText("QubesDroid Test - If you see this, basic app works!");
+        testView.setTextSize(20);
+        testView.setPadding(50, 50, 50, 50);
+        setContentView(testView);
 
-        // Initialize crypto native library with error handling
-        String cryptoVersion = "Crypto library not available";
-        try {
-            crypto = new CryptoNative();
-            cryptoVersion = crypto.getVersionInfo();
-            android.util.Log.i("QubesDroid", "Crypto library loaded successfully");
-        } catch (UnsatisfiedLinkError e) {
-            android.util.Log.e("QubesDroid", "Failed to load native library", e);
-            cryptoVersion = "ERROR: " + e.getMessage();
-            Toast.makeText(this, "Native library failed to load: " + e.getMessage(),
-                Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
-            android.util.Log.e("QubesDroid", "Unexpected error initializing crypto", e);
-            cryptoVersion = "ERROR: " + e.getMessage();
-            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
+        android.util.Log.e("QubesDroid", "===== ONCREATE SUCCESS =====");
 
-        // Display version info
-        versionText.setText("QubesDroid v1.0.0-alpha\n" + cryptoVersion);
-
-        // Set up button listeners
-        createVolumeButton.setOnClickListener(v -> {
-            if (checkPermissions()) {
-                startActivity(new Intent(this, CreateVolumeActivity.class));
-            }
-        });
-
-        mountVolumeButton.setOnClickListener(v -> {
-            if (checkPermissions()) {
-                startActivity(new Intent(this, MountVolumeActivity.class));
-            }
-        });
-
-        fab.setOnClickListener(v -> {
-            if (checkPermissions()) {
-                startActivity(new Intent(this, CreateVolumeActivity.class));
-            }
-        });
-
-        // Check permissions on startup
-        checkPermissions();
-
-        // Load recent volumes if any exist
-        loadRecentVolumes();
+        Toast.makeText(this, "QubesDroid started successfully!", Toast.LENGTH_LONG).show();
     }
 
     @Override
