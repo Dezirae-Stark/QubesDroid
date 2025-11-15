@@ -122,6 +122,9 @@ Java_com_qubesdroid_CryptoNative_encryptData(
         aad_bytes = (*env)->GetByteArrayElements(env, aad, NULL);
     }
 
+    // Initialize output to NULL (will be set on success)
+    jbyteArray output = NULL;
+
     // Validate inputs
     if ((*env)->GetArrayLength(env, key) != 32) {
         LOGE("Invalid key length");
@@ -155,7 +158,7 @@ Java_com_qubesdroid_CryptoNative_encryptData(
     }
 
     // Create output: ciphertext || tag
-    jbyteArray output = (*env)->NewByteArray(env, pt_len + 16);
+    output = (*env)->NewByteArray(env, pt_len + 16);
     (*env)->SetByteArrayRegion(env, output, 0, pt_len, (jbyte*)ciphertext);
     (*env)->SetByteArrayRegion(env, output, pt_len, 16, (jbyte*)tag);
 
