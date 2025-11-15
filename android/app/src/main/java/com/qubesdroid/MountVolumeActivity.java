@@ -298,14 +298,17 @@ public class MountVolumeActivity extends AppCompatActivity {
 
                     try {
                         startActivity(intent);
-                        android.util.Log.e("QubesDroid", "FileBrowserActivity started successfully");
-                    } catch (Exception e) {
-                        android.util.Log.e("QubesDroid", "FAILED to start FileBrowserActivity", e);
-                        Toast.makeText(this, "Error launching file browser: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    }
+                        android.util.Log.e("QubesDroid", "TestActivity started successfully");
 
-                    android.util.Log.e("QubesDroid", "Finishing MountVolumeActivity");
-                    finish();
+                        // CRITICAL TEST: Delay finish() to see if that's preventing activity launch
+                        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                            android.util.Log.e("QubesDroid", "Finishing MountVolumeActivity after delay");
+                            finish();
+                        }, 2000); // Wait 2 seconds before finishing
+                    } catch (Exception e) {
+                        android.util.Log.e("QubesDroid", "FAILED to start TestActivity", e);
+                        Toast.makeText(this, "Error launching test activity: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
                 });
 
                 // Securely erase sensitive data
