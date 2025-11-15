@@ -27,10 +27,15 @@ public class FileBrowserActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // CRITICAL: Show toast immediately to confirm activity is launching
+        Toast.makeText(this, "FILE BROWSER STARTING", Toast.LENGTH_LONG).show();
         android.util.Log.e("QubesDroid", "=== FileBrowserActivity onCreate START ===");
 
         try {
+            Toast.makeText(this, "Setting content view...", Toast.LENGTH_SHORT).show();
             setContentView(R.layout.activity_file_browser);
+            Toast.makeText(this, "Layout loaded!", Toast.LENGTH_SHORT).show();
             android.util.Log.e("QubesDroid", "Layout inflated successfully");
 
             // Get data from intent
