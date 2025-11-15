@@ -287,14 +287,15 @@ public class MountVolumeActivity extends AppCompatActivity {
                 // Success - volume is now mounted
                 runOnUiThread(() -> {
                     Toast.makeText(this,
-                        "Volume mounted successfully!\nMaster key: " +
-                        bytesToHex(masterKey).substring(0, 16) + "...",
-                        Toast.LENGTH_LONG).show();
+                        "Volume mounted successfully!",
+                        Toast.LENGTH_SHORT).show();
 
-                    // In a real implementation, we would now:
-                    // - Store the master key securely
-                    // - Provide access to decrypt/encrypt data blocks
-                    // - Show file browser or return to main activity
+                    // Launch file browser with volume info
+                    Intent intent = new Intent(this, FileBrowserActivity.class);
+                    intent.putExtra("volumeName", selectedVolumeFile.getName());
+                    intent.putExtra("volumePath", selectedVolumeFile.getAbsolutePath());
+                    intent.putExtra("masterKey", masterKey);
+                    startActivity(intent);
 
                     finish();
                 });
